@@ -1,0 +1,37 @@
+# Digital Dice + IR Remote Mood Lamp!
+
+Combined two things into one sketch: a push-button LCD dice roller and an IR remote-controlled RGB mood lamp with 6 color presets.
+
+## How it works
+
+Dice: press the button, LCD flashes through random numbers (slowing down each loop) then lands on a result 1-6, shown on the LCD.
+
+Lamp: point the remote at the IR receiver, press 1-6, RGB LED switches to that number's preset color.
+
+## Parts
+
+- Arduino Mega 2560
+- Push button
+- LCD1602 + 10K potentiometer 
+- RGB LED + 3 220 omh resistors
+- IR receiver + remote
+
+## Pinout
+
+| Component | Pin(s) |
+|---|---|
+| Button | 2 |
+| RGB LED (R/G/B) | 9, 10, 6 |
+| IR receiver | 11 |
+| LCD (RS, EN, D4-D7) | 22, 23, 4, 5, 8, 7 |
+| LCD V0 | potentiometer wiper |
+
+## Libraries
+
+- LiquidCrystal
+- IRremote by Armin Joachimsmeyer (Library Manager)
+
+## Notes / things I ran into
+
+- LCD backlight has its own A/K pins separate from VDD/VSS - if the screen stays dark even with power wired right, check those and wire them to the same 5v and ground as the VSS and VVD
+- Button legs need to straddle the breadboard's center gap, GND on one side, signal pin on the other - same side shorts them together
