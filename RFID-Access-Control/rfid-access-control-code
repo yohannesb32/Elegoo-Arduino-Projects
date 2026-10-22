@@ -1,0 +1,93 @@
+#include <SPI.h>
+#include <MFRC522.h>
+#include <LiquidCrystal.h>
+
+#define SS_PIN 53
+#define RST_PIN 5
+#define GREEN_LED 12
+#define RED_LED 11
+#define BUZZER 6
+
+MFRC522 rfid(SS_PIN, RST_PIN);
+LiquidCrystal lcd(7, 8, 9, 10, 2, 3);
+
+byte validUID[4] = {0x11, 0x02, 0x1C, 0x07}; #here you must change these UID's to the UID's of your own tags,
+# So run this code with the serial monitor open and scan a tag, once you do you should see a 8 character code
+# Seperated by 4 spaces, the replace my characters for your own.
+
+void showReady() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Scan your card");
+}
+
+void grantedFeedback() {
+  lcd.print("Access Granted");
+  digitalWrite(GREEN_LED, HIGH);
+  tone(BUZZER, 1000);
+  delay(150);
+  tone(BUZZER, 1500);
+  delay(250);
+  noTone(BUZZER);
+  delay(1600);
+  digitalWrite(GREEN_LED, LOW);
+}
+
+void deniedFeedback() {
+  lcd.print("Denied");
+  digitalWrite(RED_LED, HIGH);
+  tone(BUZZER, 400);
+  delay(300);
+  noTone(BUZZER);
+  delay(150);
+  tone(BUZZER, 400);
+  delay(300);
+  noTone(BUZZER);
+  delay(1250);
+  digitalWrite(RED_LED, LOW);
+}
+
+void setup() {
+  Serial.begin(9600);
+  SPI.begin();
+  rfid.PCD_Init();
+
+  pinMode(GREEN_LED, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+
+  lcd.begin(16, 2);
+  showReady();
+
+  Serial.println("RFID access control ready");
+}
+
+void loop() {
+  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) return;
+
+  Serial.print("UID:");
+  for (byte i = 0; i < rfid.uid.size; i++) {
+    Serial.print(rfid.uid.uidByte[i] < 0x10 ? " 0" : " ");
+    Serial.print(rfid.uid.uidByte[i], HEX);
+  }
+  Serial.println();
+
+  bool match = true;
+  for (byte i = 0; i < 4; i++) {
+    if (rfid.uid.uidByte[i] != validUID[i]) match = false;
+  }
+
+  Serial.println(match ? "MATCH" : "NO MATCH");
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+
+  if (match) {
+    grantedFeedback();
+  } else {
+    deniedFeedback();
+  }
+
+  showReady();
+  rfid.PICC_HaltA();
+}
